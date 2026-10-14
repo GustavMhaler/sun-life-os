@@ -27,7 +27,7 @@
 - **出处一**：X 帖《关于黄毛统治世界》（`x.com/xukego`）——网络迷因式表达，不是严肃理论。
 - **出处二**：第三方开源技能 [`0xcii/alpha-game-mastery`](https://github.com/0xcii/alpha-game-mastery)（《黄毛决胜法 — Alpha Game Mastery》）。
 - **上游许可**：**未声明（该仓库没有 LICENSE 文件）**。在法律上这等于「保留所有权利」，即**转载其衍生内容并未获得明确授权**。
-- **本项目的处置**：只保留其**心理内核的条目化拆解**，已按 [`docs/adr/0013`](docs/adr/0013-theory-content-redlines.md) 的红线裁掉情感博弈的操作层。若上游权利人提出异议，会立即移除这部分。
+- **本项目的处置**：只保留其**心理内核的条目化拆解**，已按 [`docs/adr/0013`](docs/adr/0013-theory-content-redlines.md) 的红线裁掉情感博弈的操作层。**本仓库所有者已知悉「上游未声明许可」这一事实，并在明示风险后决定保留**；如希望采取更保守的处置，可整体删除 `huangmao.md` 与 `huangmao-source.md` 两个文件，不影响其余功能。若上游权利人提出异议，会立即移除这部分。
 
 ## 权利主张
 
