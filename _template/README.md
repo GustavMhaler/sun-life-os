@@ -16,7 +16,7 @@
 
 ## 二、八个板块各管到哪
 
-下面八句是**唯一措辞**，逐字出现在 `_skills/life-os/references/domains.md`、`_skills/life-os/SKILL.md`、`CONTEXT.md` 与本文件：
+下面八句是**唯一措辞**，逐字出现在 `_skills/life-os/references/domains.md`、`_skills/life-os/SKILL.md`、`CONTEXT.md`、本文件与包根 `README.md`：
 
 - `body` **身体**：**身心硬件的状态与维护**——训练、摄入、睡眠、体征、伤病与恢复
 - `mind` **心智**：**内在状态与自我认定**——情绪、压力、注意力、动力，以及你怎么看自己

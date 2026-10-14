@@ -15,7 +15,7 @@ _Avoid_: 模块、分区、分类、频道
 _Avoid_: 健身板块、健康板块
 
 **板块范围（Domain scope）**：
-每个板块「管到哪」的一句话定义。下面八句是**唯一措辞**，逐字出现在 `_skills/life-os/references/domains.md`、`_skills/life-os/SKILL.md`、`_skills/life-os/references/questions.md` 与 `_template/README.md`；边界重叠时的分流规则见 `domains.md`。
+每个板块「管到哪」的一句话定义。下面八句是**唯一措辞**，逐字出现在 `_skills/life-os/references/domains.md`、`_skills/life-os/SKILL.md`、`_skills/life-os/references/questions.md`、`_template/README.md` 与包根 `README.md`；边界重叠时的分流规则见 `domains.md`。
 
 - `body` **身体**：**身心硬件的状态与维护**——训练、摄入、睡眠、体征、伤病与恢复
 - `mind` **心智**：**内在状态与自我认定**——情绪、压力、注意力、动力，以及你怎么看自己

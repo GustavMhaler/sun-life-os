@@ -4,7 +4,7 @@
 
 ## 一、八个板块各管到哪
 
-下面这八句是**唯一措辞**。同样的句子逐字出现在 `_skills/life-os/SKILL.md`（阶段 3 的表格与阶段 4 的前置）、`CONTEXT.md` 的术语表、`references/questions.md`（各板块节首）、`_template/README.md`。**改一处，这四处一起改。**
+下面这八句是**唯一措辞**。同样的句子逐字出现在 `_skills/life-os/SKILL.md`（阶段 3 的表格与阶段 4 的前置）、`CONTEXT.md` 的术语表、`references/questions.md`（各板块节首）、`_template/README.md`，以及包根 `README.md`（给用户看的那一份）。**改一处，这五处一起改。**
 
 | 板块 | slug | 范围（一句话） |
 |---|---|---|
