@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Life OS 快照</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-alt: #f5f5f5;
+    --text: #1a1a1a;
+    --muted: #666666;
+    --border: #e0e0e0;
+    --accent: #2b6cb0;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC",
+      sans-serif;
+    line-height: 1.7;
+    font-size: 16px;
+  }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 24px 16px 64px; }
+  header { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 20px; }
+  h1 { font-size: 22px; margin: 0 0 8px; font-weight: 700; }
+  .note { color: var(--muted); font-size: 14px; margin: 0; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 24px; }
+  button {
+    font: inherit;
+    padding: 8px 14px;
+    border: 1px solid var(--accent);
+    background: var(--bg);
+    color: var(--accent);
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  button:hover { background: var(--bg-alt); }
+  .updated { color: var(--muted); font-size: 14px; margin: 0 0 24px; }
+  .domain { border: 1px solid var(--border); border-radius: 4px; margin-bottom: 16px; }
+  .domain > h2 {
+    font-size: 17px; margin: 0; padding: 12px 16px; background: var(--bg-alt);
+    border-bottom: 1px solid var(--border); font-weight: 700;
+  }
+  .domain > h2 .slug { color: var(--muted); font-weight: 400; font-size: 13px; margin-left: 8px; }
+  .record { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .record:last-child { border-bottom: none; }
+  .record h3 { font-size: 15px; margin: 0 0 6px; font-weight: 600; }
+  .record ul { margin: 0; padding-left: 20px; }
+  .record li { margin: 2px 0; }
+  .empty { padding: 16px; color: var(--muted); font-size: 15px; }
+  .empty b { color: var(--text); font-weight: 600; }
+  footer { margin-top: 32px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--border); padding-top: 16px; }
+  textarea#fallback {
+    width: 100%; height: 200px; margin-top: 12px; font: inherit;
+    border: 1px solid var(--border); border-radius: 4px; padding: 8px; display: none;
+  }
+  .msg { color: var(--accent); font-size: 14px; min-height: 20px; margin: 4px 0 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Life OS 快照</h1>
+    <p class="note">这是你的 Life OS 的快照，供人阅读；agent 读的是同目录下的 Markdown 文件。</p>
+  </header>
+
+  <div class="toolbar">
+    <button id="btn-copy" type="button">复制全文</button>
+    <button id="btn-export" type="button">导出 .md</button>
+  </div>
+  <p class="msg" id="msg" role="status" aria-live="polite"></p>
+  <textarea id="fallback" readonly></textarea>
+
+  <p class="updated" id="updated-line"></p>
+  <div id="content"></div>
+
+  <footer>
+    本查看器只做呈现与导出，不提供编辑功能。数据来自同目录下的 Markdown 文件，由 agent 在访谈后刷新生成。
+  </footer>
+</div>
+
+<script id="life-data" type="application/json">
+{
+  "version": 1,
+  "updated": "",
+  "domains": [
+    {"slug": "body",      "name": "身体",     "records": []},
+    {"slug": "mind",      "name": "心智",     "records": []},
+    {"slug": "career",    "name": "事业",     "records": []},
+    {"slug": "knowledge", "name": "学识",     "records": []},
+    {"slug": "money",     "name": "财务",     "records": []},
+    {"slug": "relations", "name": "关系",     "records": []},
+    {"slug": "life",      "name": "生活运营", "records": []},
+    {"slug": "create",    "name": "创造",     "records": []}
+  ]
+}
+</script>
+
+<script>
+(function () {
+  "use strict";
+
+  var TYPE_LABEL = {
+    profile: "画像",
+    goals: "目标",
+    principles: "原则",
+    state: "状态",
+    log: "流水"
+  };
+
+  var elContent = document.getElementById("content");
+  var elUpdated = document.getElementById("updated-line");
+  var elMsg = document.getElementById("msg");
+  var elFallback = document.getElementById("fallback");
+
+  var raw = document.getElementById("life-data").textContent;
+  var data;
+  try {
+    data = JSON.parse(raw);
+  } catch (e) {
+    data = { version: 1, updated: "", domains: [] };
+  }
+
+  // ---- 渲染 ----
+  function render() {
+    var domains = data.domains || [];
+
+    if (data.updated) {
+      elUpdated.textContent = "更新于：" + data.updated;
+    } else {
+      elUpdated.textContent = "更新时间：尚未生成";
+    }
+
+    elContent.innerHTML = "";
+
+    if (!domains.length) {
+      var p = document.createElement("p");
+      p.className = "empty";
+      p.textContent = "尚未生成 —— 访谈结束后对 agent 说「刷新查看器」";
+      elContent.appendChild(p);
+      return;
+    }
+
+    // 先判断有没有任何内容，决定是"首次打开看骨架"还是"正常浏览"
+    var hasAny = domains.some(function (d) { return (d.records || []).length > 0; });
+
+    if (!hasAny) {
+      var tip = document.createElement("p");
+      tip.className = "empty";
+      tip.textContent =
+        "尚未生成 —— 访谈结束后对 agent 说「刷新查看器」。下面是访谈之后这套系统会出现的板块：";
+      elContent.appendChild(tip);
+    }
+
+    domains.forEach(function (d) {
+      var recs = d.records || [];
+      var sec = document.createElement("section");
+      sec.className = "domain";
+
+      var h2 = document.createElement("h2");
+      h2.innerHTML =
+        escapeHtml(d.name) + '<span class="slug">' + escapeHtml(d.slug) + "</span>";
+      sec.appendChild(h2);
+
+      if (!recs.length) {
+        // 首次打开时不重复刷八遍同样的提示，只保留板块骨架让人看清结构
+        if (hasAny) {
+          var empty = document.createElement("p");
+          empty.className = "empty";
+          empty.textContent = "本板块尚未生成内容。";
+          sec.appendChild(empty);
+        }
+        elContent.appendChild(sec);
+        return;
+      }
+
+      recs.forEach(function (r) {
+        var type = r.type;
+        var rec = document.createElement("div");
+        rec.className = "record";
+
+        var h3 = document.createElement("h3");
+        h3.textContent = TYPE_LABEL[type] || type;
+        rec.appendChild(h3);
+
+        var items = r.items || [];
+        if (items.length) {
+          var ul = document.createElement("ul");
+          items.forEach(function (it) {
+            var li = document.createElement("li");
+            li.textContent = it;
+            ul.appendChild(li);
+          });
+          rec.appendChild(ul);
+        }
+        sec.appendChild(rec);
+      });
+
+      elContent.appendChild(sec);
+    });
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  // ---- 导出为 Markdown ----
+  function toMarkdown() {
+    var lines = [];
+    lines.push("# Life OS 快照");
+    lines.push("");
+    lines.push("updated: " + (data.updated || "（尚未生成）"));
+    lines.push("");
+
+    (data.domains || []).forEach(function (d) {
+      lines.push("## " + d.name + " (" + d.slug + ")");
+      lines.push("");
+      var recs = d.records || [];
+      if (!recs.length) {
+        lines.push("_尚未生成_");
+        lines.push("");
+        return;
+      }
+      recs.forEach(function (r) {
+        var label = TYPE_LABEL[r.type] || r.type;
+        lines.push("### " + label);
+        (r.items || []).forEach(function (it) {
+          lines.push("- " + it);
+        });
+        if (!(r.items || []).length) lines.push("_（空）_");
+        lines.push("");
+      });
+    });
+
+    return lines.join("\n");
+  }
+
+  function setMsg(t) { elMsg.textContent = t; }
+
+  // ---- 复制全文 ----
+  document.getElementById("btn-copy").addEventListener("click", function () {
+    var text = toMarkdown();
+    elFallback.style.display = "none";
+    elFallback.value = "";
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(
+        function () { setMsg("已复制全文到剪贴板，可粘贴给任意 AI。"); },
+        function () { fallbackCopy(text); }
+      );
+    } else {
+      fallbackCopy(text);
+    }
+  });
+
+  function fallbackCopy(text) {
+    elFallback.style.display = "block";
+    elFallback.value = text;
+    elFallback.focus();
+    elFallback.select();
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    if (ok) {
+      setMsg("已复制。如未成功，请手动选中下方文本框按 Ctrl/Cmd+C。");
+    } else {
+      setMsg("自动复制失败，请手动选中下方文本框，按 Ctrl/Cmd+C 复制。");
+    }
+  }
+
+  // ---- 导出 .md ----
+  document.getElementById("btn-export").addEventListener("click", function () {
+    var text = toMarkdown();
+    var blob = new Blob([text], { type: "text/markdown;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "life-os.md";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    setMsg("已导出 life-os.md。");
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
